@@ -38,6 +38,8 @@ public class MeatmincerBlockEntity extends BlockEntity {
     };
 
     private boolean sealed, working, processingDone;
+// 常态盖在绞肉机上的盖子（独立于 sealed，未启动绞肉时也保留在机器上）
+    private ItemStack coverStack = ItemStack.EMPTY;
     private int processTick, totalProcessTime = DEFAULT_PROCESS_TIME;
     private List<ItemStack> renderInputItems = new ArrayList<>();
     private ItemStack resultTemplate = ItemStack.EMPTY;
@@ -52,6 +54,21 @@ public class MeatmincerBlockEntity extends BlockEntity {
     public List<ItemStack> getRenderInputItems() { return renderInputItems; }
     public boolean isProcessingDone() { return processingDone; }
     public boolean hasAnyInput() { return !inventory.getStackInSlot(INPUT_SLOT).isEmpty(); }
+
+    public boolean hasCover() { return !coverStack.isEmpty(); }
+
+    public void setCover(ItemStack stack) {
+        coverStack = stack.copyWithCount(1);
+        setChanged();
+    }
+
+    public ItemStack takeCover() {
+        ItemStack stack = coverStack;
+        coverStack = ItemStack.EMPTY;
+        setChanged();
+        return stack;
+    }
+
     public boolean hasOutput() { return !inventory.getStackInSlot(OUTPUT_SLOT).isEmpty() || pendingResultTotal > 0; }
     public ItemStack getInputStack() { return inventory.getStackInSlot(INPUT_SLOT); }
     public ItemStack getOutputItem() { return inventory.getStackInSlot(OUTPUT_SLOT); }
@@ -110,9 +127,13 @@ public class MeatmincerBlockEntity extends BlockEntity {
     }
 
     public void unseal(Player player) {
+        boolean wasSealed = sealed;
         sealed = working = processingDone = false; processTick = 0; renderInputItems.clear(); pendingResultTotal = 0; resultTemplate = ItemStack.EMPTY;
         for (int i = 0; i < TOTAL_SLOTS; i++) { ItemStack s = inventory.extractItem(i, 64, false); if (!s.isEmpty() && !player.isCreative()) { if (!player.getInventory().add(s)) player.drop(s, false); } }
-        ItemStack cover = getCoverDrop(); if (!player.isCreative() && !player.getInventory().add(cover)) player.drop(cover, false);
+// 盖子常态留在机器上，不再随开盖返还；旧存档没有盖子记录时补一个留在机器上
+        if (coverStack.isEmpty() && wasSealed) {
+            coverStack = getCoverDrop();
+        }
         setChanged();
     }
 
@@ -138,8 +159,8 @@ public class MeatmincerBlockEntity extends BlockEntity {
         }
     }
 
-    @Override public void saveAdditional(CompoundTag tag) { super.saveAdditional(tag); tag.put("Inventory", inventory.serializeNBT()); tag.putBoolean("Sealed", sealed); tag.putBoolean("Working", working); tag.putInt("ProcessTick", processTick); tag.putInt("TotalProcessTime", totalProcessTime); tag.putInt("PendingResultTotal", pendingResultTotal); if (!resultTemplate.isEmpty()) tag.put("ResultTemplate", resultTemplate.save(new CompoundTag())); ListTag rl = new ListTag(); for (ItemStack s : renderInputItems) { ItemStack c = s.copy(); c.setCount(1); rl.add(c.save(new CompoundTag())); } tag.put("RenderItems", rl); }
-    @Override public void load(CompoundTag tag) { super.load(tag); inventory.deserializeNBT(tag.getCompound("Inventory")); sealed = tag.getBoolean("Sealed"); working = tag.getBoolean("Working"); processTick = tag.getInt("ProcessTick"); totalProcessTime = tag.getInt("TotalProcessTime"); if (totalProcessTime <= 0) totalProcessTime = DEFAULT_PROCESS_TIME; pendingResultTotal = tag.getInt("PendingResultTotal"); resultTemplate = tag.contains("ResultTemplate") ? ItemStack.of(tag.getCompound("ResultTemplate")) : ItemStack.EMPTY; renderInputItems = new ArrayList<>(); ListTag rl = tag.getList("RenderItems", Tag.TAG_COMPOUND); for (int i = 0; i < rl.size(); i++) renderInputItems.add(ItemStack.of(rl.getCompound(i))); }
+    @Override public void saveAdditional(CompoundTag tag) { super.saveAdditional(tag); tag.put("Inventory", inventory.serializeNBT()); tag.putBoolean("Sealed", sealed); tag.putBoolean("Working", working); if (!coverStack.isEmpty()) tag.put("Cover", coverStack.save(new CompoundTag())); tag.putInt("ProcessTick", processTick); tag.putInt("TotalProcessTime", totalProcessTime); tag.putInt("PendingResultTotal", pendingResultTotal); if (!resultTemplate.isEmpty()) tag.put("ResultTemplate", resultTemplate.save(new CompoundTag())); ListTag rl = new ListTag(); for (ItemStack s : renderInputItems) { ItemStack c = s.copy(); c.setCount(1); rl.add(c.save(new CompoundTag())); } tag.put("RenderItems", rl); }
+    @Override public void load(CompoundTag tag) { super.load(tag); inventory.deserializeNBT(tag.getCompound("Inventory")); sealed = tag.getBoolean("Sealed"); working = tag.getBoolean("Working"); coverStack = tag.contains("Cover") ? ItemStack.of(tag.getCompound("Cover")) : ItemStack.EMPTY; processTick = tag.getInt("ProcessTick"); totalProcessTime = tag.getInt("TotalProcessTime"); if (totalProcessTime <= 0) totalProcessTime = DEFAULT_PROCESS_TIME; pendingResultTotal = tag.getInt("PendingResultTotal"); resultTemplate = tag.contains("ResultTemplate") ? ItemStack.of(tag.getCompound("ResultTemplate")) : ItemStack.EMPTY; renderInputItems = new ArrayList<>(); ListTag rl = tag.getList("RenderItems", Tag.TAG_COMPOUND); for (int i = 0; i < rl.size(); i++) renderInputItems.add(ItemStack.of(rl.getCompound(i))); }
     @Override public CompoundTag getUpdateTag() { CompoundTag t = new CompoundTag(); saveAdditional(t); return t; }
     @Nullable @Override public ClientboundBlockEntityDataPacket getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
     @Override public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) { load(pkt.getTag()); }

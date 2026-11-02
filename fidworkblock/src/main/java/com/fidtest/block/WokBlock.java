@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -29,6 +30,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 
@@ -39,6 +42,9 @@ public class WokBlock extends BaseEntityBlock {
     private static final ResourceLocation OIL_ID = new ResourceLocation("flavor_immersed_daily", "cookingoil");
     private static final ResourceLocation SPATULA_ID = new ResourceLocation("flavor_immersed_daily", "spatula");
 
+// 碰撞箱收窄到锅体本身（模型锅体约 x/z 2~14、高 6），避免右键时误触到锅外的空气格
+    private static final VoxelShape SHAPE = Block.box(2, 0, 2, 14, 6, 14);
+
     public WokBlock(BlockBehaviour.Properties p) {
         super(p);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(OILED, false));
@@ -46,6 +52,11 @@ public class WokBlock extends BaseEntityBlock {
 
     @Override public RenderShape getRenderShape(BlockState s) { return RenderShape.MODEL; }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) { b.add(FACING, OILED); }
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPE;
+    }
     @Nullable @Override public BlockState getStateForPlacement(BlockPlaceContext ctx) { return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite()); }
     @Override public BlockState rotate(BlockState s, Rotation r) { return s.setValue(FACING, r.rotate(s.getValue(FACING))); }
     @Override public BlockState mirror(BlockState s, Mirror m) { return s.rotate(m.getRotation(s.getValue(FACING))); }
@@ -54,12 +65,42 @@ public class WokBlock extends BaseEntityBlock {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         if (!(level.getBlockEntity(pos) instanceof WokBlockEntity wok)) return InteractionResult.PASS;
-        if (level.isClientSide) return InteractionResult.CONSUME;
 
         ItemStack held = player.getItemInHand(hand);
-        if (held.isEmpty()) return InteractionResult.PASS;
-
         boolean oiled = state.getValue(OILED);
+
+// 锅铲：锅里有食材时只能手持锅铲翻炒，不允许放置；空锅且锅上没锅铲时可把锅铲常态搁在锅上
+        if (isSpatula(held)) {
+            if (level.isClientSide) return InteractionResult.CONSUME;
+            if (wok.getItemCount() > 0) {
+                if (!oiled) return InteractionResult.PASS;
+                wok.stirFry(player);
+                level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.4F, 1.2F);
+                return InteractionResult.SUCCESS;
+            }
+            if (wok.hasSpatula()) return InteractionResult.PASS;
+            wok.setSpatula(held);
+            if (!player.isCreative()) held.shrink(1);
+            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 1.1F);
+            return InteractionResult.SUCCESS;
+        }
+
+// 空手右键：把搁在锅上的锅铲取回
+        if (held.isEmpty()) {
+            if (wok.hasSpatula() && wok.getItemCount() == 0) {
+                if (!level.isClientSide) {
+                    ItemStack spatula = wok.takeSpatula();
+                    if (!player.getInventory().add(spatula)) {
+                        player.drop(spatula, false);
+                    }
+                    level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 1.0F);
+                }
+                return InteractionResult.sidedSuccess(level.isClientSide);
+            }
+            return InteractionResult.PASS;
+        }
+
+        if (level.isClientSide) return InteractionResult.CONSUME;
 
         if (!oiled) {
             if (isCookingOil(held)) {
@@ -69,13 +110,6 @@ public class WokBlock extends BaseEntityBlock {
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.PASS;
-        }
-
-        if (isSpatula(held)) {
-            if (wok.getItemCount() == 0) return InteractionResult.PASS;
-            wok.stirFry(player);
-            level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.4F, 1.2F);
-            return InteractionResult.SUCCESS;
         }
 
         if (isSeasoning(held)) {
@@ -102,6 +136,9 @@ public class WokBlock extends BaseEntityBlock {
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof WokBlockEntity wok) {
             for (int i = 0; i < 6; i++) { ItemStack s = wok.getInventory().getStackInSlot(i); if (!s.isEmpty()) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), s); }
+            if (wok.hasSpatula()) {
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), wok.takeSpatula());
+            }
             super.onRemove(state, level, pos, newState, moved);
         }
     }

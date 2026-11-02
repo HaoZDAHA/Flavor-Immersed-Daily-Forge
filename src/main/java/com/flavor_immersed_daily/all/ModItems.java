@@ -26,12 +26,14 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import javax.annotation.Nullable;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -920,7 +922,15 @@ public final class ModItems {
 // Basic ingredients
     public static final RegistryObject<Item> SORBET = item("sorbet");
     public static final RegistryObject<Item> CASING = item("casing");
-    public static final RegistryObject<Item> HONEYCOMBBRIQUET = item("honeycombbriquet");
+// 蜂窝煤：燃烧 800 tick（可烧炼 4 个物品）。燃烧时间直接在此声明，
+// 由物品本身返回，优先于燃料数据图，保证放入熔炉即可燃烧。
+    public static final RegistryObject<Item> HONEYCOMBBRIQUET = REGISTRY.register("honeycombbriquet",
+            () -> new Item(new Item.Properties()) {
+                @Override
+                public int getBurnTime(ItemStack stack, @Nullable RecipeType<?> recipeType) {
+                    return 800;
+                }
+            });
     public static final RegistryObject<Item> BRAN = item("bran");
     public static final RegistryObject<Item> CASSAVAPEARL = item("cassavapearl");
     public static final RegistryObject<Item> SOAKEDSOYBEANS = item("soakedsoybeans");
@@ -1025,7 +1035,7 @@ public final class ModItems {
     public static final RegistryObject<Item> OILEDFLOURSKIN = item("oiledflourskin");
     public static final RegistryObject<Item> COMPACTEDRICEBRICK = item("compactedricebrick");
     public static final RegistryObject<Item> MACARONI = item("macaroni");
-    public static final RegistryObject<Item> STEAMEDRICEBRICK = item("steamedricebrick");
+    public static final RegistryObject<Item> STEAMEDRICEBRICK = food("steamedricebrick", 1, 0.6f);
 
 // Fillings, pastes, and liquids
     public static final RegistryObject<Item> BROKENWALNUT = item("brokenwalnut");
@@ -1128,10 +1138,6 @@ public final class ModItems {
 
     public static final RegistryObject<Item> COOKED_BAOZI = REGISTRY.register("cooked_baozi", () -> new Item(new Item.Properties()));
 
-    public static final RegistryObject<Item> FATBEEFROLL = REGISTRY.register("fatbeefroll", () -> new Item(new Item.Properties()));
-
-    public static final RegistryObject<Item> LAMBROLL = REGISTRY.register("lambroll", () -> new Item(new Item.Properties()));
-
     public static final RegistryObject<Item> MUSHROOMSWRAPPEDINBATTER = REGISTRY.register("mushroomswrappedinbatter", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> RAWCHICKENWINGWITHBATTER = REGISTRY.register("rawchickenwingwithbatter", () -> new Item(new Item.Properties()));
@@ -1149,8 +1155,6 @@ public final class ModItems {
     public static final RegistryObject<Item> RAWDICEDCHICKENWITHBATTER = REGISTRY.register("rawdicedchickenwithbatter", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> WONTON = REGISTRY.register("wonton", () -> new Item(new Item.Properties()));
-
-    public static final RegistryObject<Item> NORMALMEATROLL = REGISTRY.register("normalmeatroll", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> CARAMELCORNKENNELS = REGISTRY.register("caramelcornkennels", () -> new Item(new Item.Properties()));
 
@@ -1236,8 +1240,6 @@ public final class ModItems {
     public static final RegistryObject<Item> THICKBROADBEANSAUCE = REGISTRY.register("thickbroadbeansauce", () -> new SeasoningItem(
             new Item.Properties(), () -> ModEffects.BEAN_FURY.get(), () -> Config.beanFuryEnabled));
 
-    public static final RegistryObject<Item> TOMATO_HOT_POT_BASE = REGISTRY.register("tomato_hot_pot_base", () -> new Item(new Item.Properties()));
-
     public static final RegistryObject<Item> BONESOUPESSENCE = REGISTRY.register("bonesoupessence", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> BROWNSUGAR = REGISTRY.register("brownsugar", () -> new Item(new Item.Properties()));
@@ -1252,15 +1254,11 @@ public final class ModItems {
 
     public static final RegistryObject<Item> HALOGENBAG = REGISTRY.register("halogenbag", () -> new Item(new Item.Properties()));
 
-    public static final RegistryObject<Item> SPICY_HOT_POT_BASE = REGISTRY.register("spicy_hot_pot_base", () -> new Item(new Item.Properties()));
-
     public static final RegistryObject<Item> MAJUICE = REGISTRY.register("majuice", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> WHITESUGARSYRUP = REGISTRY.register("whitesugarsyrup", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> COOKINGOIL = REGISTRY.register("cookingoil", () -> new Item(new Item.Properties()));
-
-    public static final RegistryObject<Item> PEPPER_HOT_POT_BASE = REGISTRY.register("pepper_hot_pot_base", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> SWEETFLOURASUVE = REGISTRY.register("sweetflourasuve", () -> new Item(new Item.Properties()));
 
@@ -1327,17 +1325,17 @@ public final class ModItems {
             () -> new TooltipItem(new Item.Properties(),
                     Component.translatable("tooltip.flavor_immersed_daily.chicken_without_blood"), ModItems::chickenBloodIcons));
 
-    public static final RegistryObject<Item> SHARPKNIFE = REGISTRY.register("sharpknife", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> SHARPKNIFE = REGISTRY.register("sharpknife", () -> new Item(new Item.Properties().stacksTo(1)));
 
-    public static final RegistryObject<Item> WIDEEDGEDKNIFE = REGISTRY.register("wideedgedknife", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> WIDEEDGEDKNIFE = REGISTRY.register("wideedgedknife", () -> new Item(new Item.Properties().stacksTo(1)));
 
-    public static final RegistryObject<Item> BONECUTTERKNIFE = REGISTRY.register("bonecutterknife", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BONECUTTERKNIFE = REGISTRY.register("bonecutterknife", () -> new Item(new Item.Properties().stacksTo(1)));
 
-    public static final RegistryObject<Item> KITCHENKNIFE = REGISTRY.register("kitchenknife", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> KITCHENKNIFE = REGISTRY.register("kitchenknife", () -> new Item(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> KITCHENSCISSOR = REGISTRY.register("kitchenscissor", () -> new KitchenScissorsItem(new Item.Properties()));
 
-    public static final RegistryObject<Item> SPATULA = REGISTRY.register("spatula", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> SPATULA = REGISTRY.register("spatula", () -> new Item(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> MALLET = REGISTRY.register("mallet", () -> new CoarseClothItem(new Item.Properties()));
 
@@ -1781,9 +1779,6 @@ public final class ModItems {
             () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> RAWSHEEPFACE = REGISTRY.register("rawsheepface",
-            () -> new Item(new Item.Properties()));
-
-    public static final RegistryObject<Item> RAWSHEEPTAILFAT = REGISTRY.register("rawsheeptailfat",
             () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> RAWSHEEPFAT = REGISTRY.register("rawsheepfat",
@@ -2321,14 +2316,6 @@ public final class ModItems {
                             .alwaysEat()
                             .build())));
 
-    public static final RegistryObject<Item> COOKEDCHICKENSTEAK = REGISTRY.register("cookedchickensteak",
-            () -> new Item(new Item.Properties()
-                    .food(new FoodProperties.Builder()
-                            .nutrition(6)
-                            .saturationMod(0.8f)
-                            .alwaysEat()
-                            .build())));
-
     public static final RegistryObject<Item> COOKEDCHICKENFORK = REGISTRY.register("cookedchickenfork",
             () -> new Item(new Item.Properties()
                     .food(new FoodProperties.Builder()
@@ -2601,8 +2588,6 @@ public final class ModItems {
     public static final RegistryObject<Item> COOKEDFLAKEBEEF = REGISTRY.register("cookedflakebeef", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().nutrition(8).saturationMod(0.7f).alwaysEat().build())));
 
     public static final RegistryObject<Item> COOKEDHALFOFCHCIKENLEG = REGISTRY.register("cookedhalfofchcikenleg", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().nutrition(7).saturationMod(0.6f).alwaysEat().build())));
-
-    public static final RegistryObject<Item> COOKEDPIGSTREAKMEAT = REGISTRY.register("cookedpigstreakmeat", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().nutrition(8).saturationMod(0.7f).alwaysEat().build())));
 
     public static final RegistryObject<Item> DRIED_TOFU_SKIN = REGISTRY.register("dried_tofu_skin", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().nutrition(5).saturationMod(0.4f).alwaysEat().build())));
 

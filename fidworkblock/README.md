@@ -8,7 +8,7 @@
 | 路径 | 内容 |
 | --- | --- |
 | `src/main/java/com/fidtest/block/entity/` | 各工作方块的加工逻辑 |
-| `src/main/resources/data/fidworkblock/recipe/<appliance>/` | 各工作方块的配方数据 |
+| `src/main/resources/data/fidworkblock/recipes/<appliance>/` | 各工作方块的配方数据 |
 | `src/main/resources/data/<命名空间>/choppingboard_mob/` | 砧板小型生物屠宰定义 |
 | `src/main/resources/assets/fidworkblock/` | 贴图、模型、语言文件 |
 | `../附属模板/` | 发布用美术模板（`all.psd`、`logo.png`、`background.png`） |
@@ -24,7 +24,7 @@ block logic, the `fidworkblock:cooking` recipe type and all recipe data.
 | Path | Contents |
 | --- | --- |
 | `src/main/java/com/fidtest/block/entity/` | Processing logic of each work block |
-| `src/main/resources/data/fidworkblock/recipe/<appliance>/` | Recipe data of each work block |
+| `src/main/resources/data/fidworkblock/recipes/<appliance>/` | Recipe data of each work block |
 | `src/main/resources/data/<namespace>/choppingboard_mob/` | Chopping board butchery definitions |
 | `src/main/resources/assets/fidworkblock/` | Textures, models, language files |
 | `../附属模板/` | Release art templates (`all.psd`, `logo.png`, `background.png`) |

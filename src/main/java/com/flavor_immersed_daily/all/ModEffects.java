@@ -16,7 +16,6 @@ public final class ModEffects {
     public static final RegistryObject<SesameSlipEffect> SESAME_SLIP = REGISTRY.register("sesame_slip", SesameSlipEffect::new);
     public static final RegistryObject<AceticErosionEffect> ACETIC_EROSION = REGISTRY.register("acetic_erosion", AceticErosionEffect::new);
     public static final RegistryObject<ButterPitcherEffect> BUTTER_PITCHER = REGISTRY.register("butter_pitcher", ButterPitcherEffect::new);
-    public static final RegistryObject<FrozenEffect> FROZEN = REGISTRY.register("frozen", FrozenEffect::new);
     public static final RegistryObject<BeanFuryEffect> BEAN_FURY = REGISTRY.register("bean_fury", BeanFuryEffect::new);
     public static final RegistryObject<FlavorBaseEffect> FLAVOR_BASE = REGISTRY.register("flavor_base", FlavorBaseEffect::new);
     public static final RegistryObject<SolarBrewEffect> SOLAR_BREW = REGISTRY.register("solar_brew", SolarBrewEffect::new);

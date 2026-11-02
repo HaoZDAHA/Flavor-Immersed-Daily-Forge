@@ -64,13 +64,13 @@ public class MeatmincerBlock extends BaseEntityBlock {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         if (!(level.getBlockEntity(pos) instanceof MeatmincerBlockEntity mincer)) return InteractionResult.PASS;
-        boolean sealed = state.getValue(SEALED);
+// SEALED 表示盖子是否盖在机器上，实际密封状态由方块实体记录
+        boolean sealed = mincer.isSealed();
 
         if (sealed) {
             if (player.isShiftKeyDown()) {
                 if (level.isClientSide) return InteractionResult.CONSUME;
                 mincer.unseal(player);
-                level.setBlock(pos, state.setValue(SEALED, false), 3);
                 level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 1.0F);
                 return InteractionResult.SUCCESS;
             }
@@ -82,6 +82,16 @@ public class MeatmincerBlock extends BaseEntityBlock {
         if (!held.isEmpty()) {
             if (isMincerCover(held)) {
                 if (level.isClientSide) return InteractionResult.CONSUME;
+                if (!mincer.hasCover()) {
+// 未工作时可把盖子常态盖在机器上
+                    mincer.setCover(held);
+// 盖子常态挂在机器上时改用带盖模型（SEALED），不再单独渲染盖子物品
+                    level.setBlock(pos, state.setValue(SEALED, true), 3);
+                    if (!player.isCreative()) held.shrink(1);
+                    level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.8F, 0.9F);
+                    return InteractionResult.SUCCESS;
+                }
+// 盖子已盖好：材料符合配方时直接启动绞肉（不再消耗手里的盖子）
                 if (mincer.checkRecipe()) {
                     if (!player.isCreative()) held.shrink(1);
                     level.setBlock(pos, state.setValue(SEALED, true), 3);
@@ -100,13 +110,35 @@ public class MeatmincerBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
 
-        if (player.isShiftKeyDown() && mincer.hasAnyInput()) {
+        if (player.isShiftKeyDown()) {
+// 潜行空手优先取下盖子
+            if (mincer.hasCover()) {
+                if (level.isClientSide) return InteractionResult.CONSUME;
+                ItemStack cover = mincer.takeCover();
+                level.setBlock(pos, state.setValue(SEALED, false), 3);
+                if (!player.isCreative()) player.getInventory().add(cover);
+                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 1.0F);
+                return InteractionResult.SUCCESS;
+            }
+            if (mincer.hasAnyInput()) {
+                if (level.isClientSide) return InteractionResult.CONSUME;
+                ItemStack r = mincer.removeInput();
+                if (!player.isCreative()) player.getInventory().add(r);
+                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 1.0F);
+                return InteractionResult.SUCCESS;
+            }
+            return InteractionResult.CONSUME;
+        }
+
+// 盖子盖着且材料符合配方：空手右键启动绞肉
+        if (mincer.hasCover() && mincer.checkRecipe()) {
             if (level.isClientSide) return InteractionResult.CONSUME;
-            ItemStack r = mincer.removeInput();
-            if (!player.isCreative()) player.getInventory().add(r);
-            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 1.0F);
+            level.setBlock(pos, state.setValue(SEALED, true), 3);
+            mincer.seal();
+            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, 0.6F);
             return InteractionResult.SUCCESS;
         }
+
         if (mincer.hasOutput()) {
             if (level.isClientSide) return InteractionResult.CONSUME;
             ItemStack out = mincer.collectOutput();
@@ -120,7 +152,12 @@ public class MeatmincerBlock extends BaseEntityBlock {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MeatmincerBlockEntity mincer) {
-            if (state.getValue(SEALED)) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), mincer.getCoverDrop());
+            if (mincer.hasCover()) {
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), mincer.takeCover());
+            } else if (state.getValue(SEALED)) {
+// 旧存档兼容：密封状态但没有盖子物品时补一个
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), mincer.getCoverDrop());
+            }
             for (int i = 0; i < MeatmincerBlockEntity.TOTAL_SLOTS; i++) { ItemStack s = mincer.getInventory().getStackInSlot(i); if (!s.isEmpty()) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), s); }
             super.onRemove(state, level, pos, newState, moved);
         }

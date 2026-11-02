@@ -101,6 +101,8 @@ public class FlavorImmersedDailyClient {
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.ANTITHETICAL_COUPLET_2.get(), cutout);
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.REDLANTERN.get(), cutout);
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.GOLDLANTERN.get(), cutout);
+// 香炉：透明渲染，避免贴图透明区域在方块上显示成黑边
+        ItemBlockRenderTypes.setRenderLayer(ModBlocks.INCENSE_BURNER.get(), cutout);
     }
 
     @SubscribeEvent

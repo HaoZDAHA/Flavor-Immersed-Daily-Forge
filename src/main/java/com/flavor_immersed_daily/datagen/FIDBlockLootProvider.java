@@ -6,6 +6,7 @@ import com.flavor_immersed_daily.block.block.fruit.FallingFruitBlock;
 import com.flavor_immersed_daily.block.common.block.FIDCropBlock;
 import com.flavor_immersed_daily.block.common.block.FIDLogMushroomBlock;
 import com.flavor_immersed_daily.block.common.block.FIDWaterCropBlock;
+import com.flavor_immersed_daily.block.block.food.MultiStageInteractiveBlock;
 import com.flavor_immersed_daily.block.block.fruit.FruitingLeavesBlock;
 import com.flavor_immersed_daily.block.block.fruit.GrapeBlock;
 import net.minecraft.core.Holder;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.advancements.critereon.StatePropertiesPredicate;
 
 import java.util.Set;
@@ -59,6 +61,14 @@ public final class FIDBlockLootProvider extends BlockLootSubProvider {
             } else if (block instanceof FIDWaterCropBlock crop) {
                 add(block, fortuneCropDrops(block, crop.getCropItem(), crop.getSeedItem(),
                         crop.getAgeProperty(), crop.getMaxAge()));
+            } else if (block instanceof MultiStageInteractiveBlock) {
+// 放置的菜品：未被食用（stage=0）时破坏才返还物品
+                add(block, LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .add(LootItem.lootTableItem(block))
+                        .when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
+                                .setProperties(StatePropertiesPredicate.Builder.properties()
+                                        .hasProperty(MultiStageInteractiveBlock.STAGE, 0))))));
             } else {
                 dropSelf(block);
             }

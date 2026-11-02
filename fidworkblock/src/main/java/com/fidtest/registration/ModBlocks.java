@@ -17,12 +17,12 @@ public class ModBlocks {
 
     private static BlockBehaviour.Properties props(MapColor color, SoundType sound) {
         return BlockBehaviour.Properties.of().mapColor(color)
-                .strength(2.0F, 3.0F).sound(sound).noOcclusion();
+                .strength(0.5F, 3.0F).sound(sound).noOcclusion();
     }
 
     public static final RegistryObject<SteamboxBlock> STEAMBOX =
             BLOCKS.register("steambox", () -> new SteamboxBlock(
-                    BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(1.0F, 3.0F).sound(SoundType.WOOD).noOcclusion()));
+                    BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(0.5F, 3.0F).sound(SoundType.WOOD).noOcclusion()));
     public static final RegistryObject<WokBlock> WOK =
             BLOCKS.register("wok", () -> new WokBlock(props(MapColor.METAL, SoundType.METAL)));
     public static final RegistryObject<ChoppingboardBlock> CHOPPINGBOARD =

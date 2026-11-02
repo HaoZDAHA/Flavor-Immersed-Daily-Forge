@@ -24,9 +24,11 @@ public class WokRenderer implements BlockEntityRenderer<WokBlockEntity> {
 
     @Override
     public void render(WokBlockEntity be, float pt, PoseStack ps, MultiBufferSource buf, int light, int overlay) {
-        List<ItemStack> items = be.getStoredItems(); if (items.isEmpty()) return;
+        List<ItemStack> items = be.getStoredItems(); if (items.isEmpty() && !be.hasSpatula()) return;
         float yRot = 0;
         if (be.getLevel() != null) yRot = -be.getBlockState().getValue(WokBlock.FACING).toYRot();
+        if (be.hasSpatula()) renderSpatula(be, ps, buf, light, overlay, yRot);
+        if (items.isEmpty()) return;
         float toss = be.getTossTicks() > 0 ? (float) Math.sin((be.getTossTicks() - pt) / 12F * Math.PI) * 0.3F : 0;
         ps.pushPose(); ps.translate(0.5, BASE_Y + toss, 0.5); ps.mulPose(Axis.YP.rotationDegrees(yRot));
         for (int i = 0; i < items.size(); i++) {
@@ -38,6 +40,18 @@ public class WokRenderer implements BlockEntityRenderer<WokBlockEntity> {
             itemRenderer.renderStatic(items.get(i), ItemDisplayContext.FIXED, light, overlay, ps, buf, be.getLevel(), 0);
             ps.popPose();
         }
+        ps.popPose();
+    }
+
+// 常态搁在锅上的锅铲：斜躺在锅口，手柄朝向玩家
+    private void renderSpatula(WokBlockEntity be, PoseStack ps, MultiBufferSource buf, int light, int overlay, float yRot) {
+        ps.pushPose();
+        ps.translate(0.5, BASE_Y + 0.16F, 0.5);
+        ps.mulPose(Axis.YP.rotationDegrees(yRot));
+        ps.mulPose(Axis.ZP.rotationDegrees(12));
+        ps.mulPose(Axis.XP.rotationDegrees(90));
+        ps.scale(0.55F, 0.55F, 0.55F);
+        itemRenderer.renderStatic(be.getSpatula(), ItemDisplayContext.FIXED, light, overlay, ps, buf, be.getLevel(), 0);
         ps.popPose();
     }
 }

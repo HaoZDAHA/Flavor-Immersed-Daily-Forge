@@ -19,8 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,10 +52,7 @@ public class DishItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack held = player.getItemInHand(hand);
         if (player.isShiftKeyDown()) {
-            if (level.isClientSide) {
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
-                        () -> () -> com.fidtest.FidworkModClient.openDishNamingScreen(hand));
-            }
+// 命名页面由客户端输入事件打开，这里直接返回成功，避免同时开始食用
             return InteractionResultHolder.success(held);
         }
         return super.use(level, player, hand);

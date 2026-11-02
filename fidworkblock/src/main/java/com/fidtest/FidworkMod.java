@@ -147,7 +147,9 @@ public class FidworkMod {
             serverPlayer.displayClientMessage(
                     Component.translatable("message.fidworkblock.need_patchouli"), false);
         }
-        unlockWelcomeAndGiveStartBook(serverPlayer);
+        if (Config.GIVE_STARTBOOK_ON_JOIN.get()) {
+            unlockWelcomeAndGiveStartBook(serverPlayer);
+        }
     }
 
 // 首次进入存档时解锁「烟火凡人心」进度并发放教程卷轴。

@@ -21,7 +21,9 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.InteractionHand;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -34,7 +36,21 @@ public class FidworkModClient {
         event.enqueueWork(() -> {
             MenuScreens.register(ModMenuTypes.COOKING.get(), CookingScreen::new);
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.MEATMINCER.get(), RenderType.cutout());
+            MinecraftForge.EVENT_BUS.addListener(FidworkModClient::onInteractionKeyMappingTriggered);
         });
+    }
+
+// 潜行右键菜品时在客户端直接拦截「使用物品」输入，避免同时发送使用包导致服务端开始食用
+    private static void onInteractionKeyMappingTriggered(InputEvent.InteractionKeyMappingTriggered event) {
+        if (!event.isUseItem()) return;
+        Minecraft minecraft = Minecraft.getInstance();
+        var player = minecraft.player;
+        if (player == null || player.isSpectator() || !player.isShiftKeyDown()) return;
+        var held = player.getItemInHand(event.getHand());
+        if (!(held.getItem() instanceof com.fidtest.item.DishItem)) return;
+        event.setCanceled(true);
+        event.setSwingHand(false);
+        openDishNamingScreen(event.getHand());
     }
 
     @SubscribeEvent

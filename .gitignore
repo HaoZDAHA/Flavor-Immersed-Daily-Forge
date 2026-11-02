@@ -31,9 +31,6 @@ logs
 fidworkblock/1.21.1main
 fidworkblock/帕秋莉参考
 
-# ai workspace
-.trae
-
 # logs and reports
 *.log
 crash-*.txt

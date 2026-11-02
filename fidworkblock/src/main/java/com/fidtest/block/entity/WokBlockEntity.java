@@ -33,6 +33,8 @@ public class WokBlockEntity extends BlockEntity {
 
     private int stirCount, tossTicks;
     private String seasoningName = "";
+// 常态搁在锅上的锅铲（存储用，不参与炒菜判定）
+    private ItemStack storedSpatula = ItemStack.EMPTY;
 
     public WokBlockEntity(BlockPos pos, BlockState state) { super(ModBlockEntities.WOK.get(), pos, state); }
 
@@ -41,6 +43,24 @@ public class WokBlockEntity extends BlockEntity {
     public int getTossTicks() { return tossTicks; }
     public String getSeasoningName() { return seasoningName; }
     public void setSeasoningName(String n) { seasoningName = n; }
+
+// 常态搁在锅上的锅铲（存储用，不参与炒菜判定）
+    public boolean hasSpatula() { return !storedSpatula.isEmpty(); }
+
+    public ItemStack getSpatula() { return storedSpatula; }
+
+    public void setSpatula(ItemStack stack) {
+        this.storedSpatula = stack.copyWithCount(1);
+        sync();
+    }
+
+    public ItemStack takeSpatula() {
+        ItemStack stack = storedSpatula;
+        storedSpatula = ItemStack.EMPTY;
+        sync();
+        return stack;
+    }
+
     public int getItemCount() { int c = 0; for (int i = 0; i < MAX_ITEMS; i++) if (!inventory.getStackInSlot(i).isEmpty()) c++; return c; }
     public boolean canAddItem() { return getItemCount() < MAX_ITEMS; }
 
@@ -82,8 +102,8 @@ public class WokBlockEntity extends BlockEntity {
 
     private void sync() { setChanged(); if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3); }
 
-    @Override public void saveAdditional(CompoundTag tag) { super.saveAdditional(tag); tag.put("Inventory", inventory.serializeNBT()); tag.putInt("StirCount", stirCount); tag.putInt("TossTicks", tossTicks); }
-    @Override public void load(CompoundTag tag) { super.load(tag); inventory.deserializeNBT(tag.getCompound("Inventory")); stirCount = tag.getInt("StirCount"); tossTicks = tag.getInt("TossTicks"); }
+    @Override public void saveAdditional(CompoundTag tag) { super.saveAdditional(tag); tag.put("Inventory", inventory.serializeNBT()); tag.putInt("StirCount", stirCount); tag.putInt("TossTicks", tossTicks); if (!storedSpatula.isEmpty()) tag.put("Spatula", storedSpatula.save(new CompoundTag())); }
+    @Override public void load(CompoundTag tag) { super.load(tag); inventory.deserializeNBT(tag.getCompound("Inventory")); stirCount = tag.getInt("StirCount"); tossTicks = tag.getInt("TossTicks"); storedSpatula = tag.contains("Spatula") ? ItemStack.of(tag.getCompound("Spatula")) : ItemStack.EMPTY; }
     @Override public CompoundTag getUpdateTag() { CompoundTag t = new CompoundTag(); saveAdditional(t); return t; }
     @Nullable @Override public ClientboundBlockEntityDataPacket getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
     @Override public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) { load(pkt.getTag()); }
