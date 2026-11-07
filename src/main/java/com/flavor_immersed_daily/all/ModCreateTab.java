@@ -53,14 +53,15 @@ public class ModCreateTab {
 // 注意：原版创造栏会把同一个 ItemStack 去重，重复物品只在「首次出现」的分区里显示，
 // 所以这里的数量是该分区**实际显示**的件数，而不是源码里 accept 的行数：
 // 田间耕种 260（源码 261，青提重复）、食材杂项 251（源码 255，糯米/白菜/挂糊裹粉的鸡腿/肉卷重复）。
-// 厨房工具 32 件（本模组 19 件，另预留 13 件给 fidworkblock 在标签页最前注入的厨具/教程卷轴）、
+// 厨房工具 36 件（本模组 19 件，另预留 17 件给 fidworkblock 在标签页最前注入的 12 台厨具、
+// 4 件餐具与教程卷轴），
 // 田间耕种 260 件、畜牧产品 78 件、食物佳肴 473 件、食材杂项 251 件，
 // 建筑装饰用负数表示「从这里起余下的全部」。
 // id 同时用作折叠状态的键与横幅纹理名。
     private static final List<SectionedCreativeModeTab.Section> SECTIONS = List.of(
             new SectionedCreativeModeTab.Section("kitchen_tools",
                     Component.translatable("gui.flavor_immersed_daily.creative_section.kitchen_tools"),
-                    bannerTexture("kitchen_tools"), 32),
+                    bannerTexture("kitchen_tools"), 36),
             new SectionedCreativeModeTab.Section("farming",
                     Component.translatable("gui.flavor_immersed_daily.creative_section.farming"),
                     bannerTexture("farming"), 260),
