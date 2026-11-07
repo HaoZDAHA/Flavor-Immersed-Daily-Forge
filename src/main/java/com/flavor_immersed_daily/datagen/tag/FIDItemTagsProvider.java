@@ -31,6 +31,12 @@ public final class FIDItemTagsProvider extends ItemTagsProvider {
             Item item = entry.get();
             if (item instanceof SeasoningItem) {
                 tag(FIDItemTags.SEASONING).add(item);
+                boolean wet = item == ModItems.VINEGAR.get()
+                        || item == ModItems.THICKBROADBEANSAUCE.get()
+                        || item == ModItems.SOY.get()
+                        || item == ModItems.SESAMEOIL.get()
+                        || item == ModItems.BROWNSUGARSYRUP.get();
+                tag(wet ? FIDItemTags.WET_SEASONING : FIDItemTags.DRY_SEASONING).add(item);
             }
         });
     }

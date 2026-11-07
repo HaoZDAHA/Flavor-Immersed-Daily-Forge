@@ -44,12 +44,18 @@ public class SeasoningItem extends Item {
 
     private final Supplier<? extends MobEffect> effect;
     private final BooleanSupplier enabled;
+    private final int color;
 
     public SeasoningItem(Properties properties, Supplier<? extends MobEffect> effect,
-                         BooleanSupplier enabled) {
+                         BooleanSupplier enabled, int color) {
         super(properties);
         this.effect = effect;
         this.enabled = enabled;
+        this.color = color;
+    }
+
+    public int getColor() {
+        return color;
     }
 
 // 应用对应 buff；受配置开关限制。返回是否成功施加（未启用时不施放）。
@@ -66,11 +72,25 @@ public class SeasoningItem extends Item {
     }
 
     @SubscribeEvent
+    public static void onFoodTooltip(net.minecraftforge.event.entity.player.ItemTooltipEvent event) {
+        ItemStack food = event.getItemStack();
+        if (food.getFoodProperties(event.getEntity()) == null) return;
+        CompoundTag tag = food.getTag();
+        if (tag == null) return;
+        ResourceLocation id = ResourceLocation.tryParse(tag.getString(SEASONING_NBT_KEY));
+        if (id == null || !(BuiltInRegistries.ITEM.get(id) instanceof SeasoningItem seasoning)) return;
+        event.getToolTip().add(net.minecraft.network.chat.Component.translatable(
+                seasoning.effect.get().getDescriptionId())
+                .append(" (0:45)")
+                .withStyle(seasoning.effect.get().getCategory().getTooltipFormatting()));
+    }
+
+    @SubscribeEvent
     public static void onFoodEaten(LivingEntityUseItemEvent.Finish event) {
         if (!(event.getEntity() instanceof Player player) || player.level().isClientSide) return;
 
         ItemStack food = event.getItem();
-        if (!food.getItem().isEdible()) return;
+        if (food.getFoodProperties(player) == null) return;
         if (food.is(ModItems.ICEDBLACKTEA.get())) {
             player.addEffect(new MobEffectInstance(ModEffects.CRIMSON_MAMBA.get(),
                     ICED_BLACK_TEA_DURATION_TICKS, 0));

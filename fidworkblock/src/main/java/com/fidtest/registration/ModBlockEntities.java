@@ -13,6 +13,8 @@ import com.fidtest.block.entity.SqueezingmachineBlockEntity;
 import com.fidtest.block.entity.SteamboxBlockEntity;
 import com.fidtest.block.entity.TeapotBlockEntity;
 import com.fidtest.block.entity.WokBlockEntity;
+import com.fidtest.block.entity.TablewareBlockEntity;
+import com.fidtest.block.entity.PlatedDishBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.registries.DeferredRegister;
@@ -22,6 +24,11 @@ public class ModBlockEntities {
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, FidworkMod.MODID);
+
+    public static final RegistryObject<BlockEntityType<TablewareBlockEntity>> TABLEWARE =
+            BLOCK_ENTITIES.register("tableware", () -> BlockEntityType.Builder.of(TablewareBlockEntity::new, ModBlocks.TABLEWARE.get()).build(null));
+    public static final RegistryObject<BlockEntityType<PlatedDishBlockEntity>> PLATED_DISH =
+            BLOCK_ENTITIES.register("plated_dish", () -> BlockEntityType.Builder.of(PlatedDishBlockEntity::new, ModBlocks.PLATED_DISH.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<SteamboxBlockEntity>> STEAMBOX =
             BLOCK_ENTITIES.register("steambox",

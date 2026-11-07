@@ -64,6 +64,10 @@ public class FidworkMod {
                         output.accept(ModBlocks.DRYER.get());
                         output.accept(ModBlocks.FRYINGPAN.get());
                         output.accept(ModBlocks.MEATMINCER.get());
+                        output.accept(ModItems.PLATE.get());
+                        output.accept(ModItems.LONG_PLATE.get());
+                        output.accept(ModItems.SMALL_PLATE.get());
+                        output.accept(ModItems.CHOPSTICKS.get());
                         output.accept(StartBookItem.createBookStack());
                     }).build());
         }
@@ -122,6 +126,10 @@ public class FidworkMod {
                 new ItemStack(ModBlocks.DRYER.get()),
                 new ItemStack(ModBlocks.FRYINGPAN.get()),
                 new ItemStack(ModBlocks.MEATMINCER.get()),
+                new ItemStack(ModItems.PLATE.get()),
+                new ItemStack(ModItems.LONG_PLATE.get()),
+                new ItemStack(ModItems.SMALL_PLATE.get()),
+                new ItemStack(ModItems.CHOPSTICKS.get()),
         };
 // putFirst 每次插入到最前，故倒序遍历才能保持上面的显示顺序
         for (int i = items.length - 1; i >= 0; i--) {
@@ -132,6 +140,7 @@ public class FidworkMod {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
+        com.fidtest.network.ChopsticksEatPayload.register();
         LOGGER.info("FidworkBlock cooking system ready!");
     }
 

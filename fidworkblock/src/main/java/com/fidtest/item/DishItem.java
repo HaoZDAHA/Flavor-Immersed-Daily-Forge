@@ -43,9 +43,33 @@ public class DishItem extends Item {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
-        int hunger = getHungerValue(stack);
-        if (entity instanceof Player p) p.getFoodData().eat(hunger, 0.2F);
-        return super.finishUsingItem(stack, level, entity);
+        if (!level.isClientSide && eatBite(stack, level, entity)) stack.shrink(1);
+        return stack;
+    }
+
+    @Override
+    public FoodProperties getFoodProperties(ItemStack stack, LivingEntity entity) {
+        if (stack.hasTag() && !stack.getTag().contains("seasoning") && stack.getTag().contains("seasoningeffect")) {
+            setSeasoningEffect(stack, stack.getTag().getString("seasoningeffect"));
+        }
+        int bites = Math.max(0, Math.min(3, DishFragments.data(stack).getInt("Bites")));
+        int total = Math.max(0, getHungerValue(stack));
+        int nutrition = bites >= 3 ? 0 : total / 3 + (bites < total % 3 ? 1 : 0);
+        return new FoodProperties.Builder().nutrition(nutrition).saturationMod(0.2F).build();
+    }
+
+    public static boolean eatBite(ItemStack stack, Level level, LivingEntity entity) {
+        if (level.isClientSide) return false;
+        if (entity instanceof Player player) {
+            FoodProperties food = stack.getItem().getFoodProperties(stack, player);
+            player.getFoodData().eat(food.getNutrition(), food.getSaturationModifier());
+            player.awardStat(net.minecraft.stats.Stats.ITEM_USED.get(stack.getItem()));
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                net.minecraft.advancements.CriteriaTriggers.CONSUME_ITEM.trigger(serverPlayer, stack);
+            }
+        }
+        entity.gameEvent(net.minecraft.world.level.gameevent.GameEvent.EAT);
+        return DishFragments.takeBite(stack);
     }
 
     @Override
@@ -56,6 +80,36 @@ public class DishItem extends Item {
             return InteractionResultHolder.success(held);
         }
         return super.use(level, player, hand);
+    }
+
+    @Override
+    public net.minecraft.world.InteractionResult useOn(net.minecraft.world.item.context.UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player == null) return net.minecraft.world.InteractionResult.PASS;
+        if (player.isShiftKeyDown()) {
+            use(context.getLevel(), player, context.getHand());
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        var placement = new net.minecraft.world.item.context.BlockPlaceContext(context);
+        Level level = context.getLevel();
+        var pos = placement.getClickedPos();
+        var state = com.fidtest.registration.ModBlocks.PLATED_DISH.get().defaultBlockState();
+        if (!placement.canPlace() || !level.mayInteract(player, pos)
+                || !player.mayUseItemAt(pos, placement.getClickedFace(), context.getItemInHand())
+                || !level.getWorldBorder().isWithinBounds(pos) || level.isOutsideBuildHeight(pos)
+                || !state.canSurvive(level, pos)
+                || !level.isUnobstructed(state, pos, net.minecraft.world.phys.shapes.CollisionContext.of(player))) {
+            return net.minecraft.world.InteractionResult.FAIL;
+        }
+        if (!level.isClientSide) {
+            if (!level.setBlock(pos, state, 3)) return net.minecraft.world.InteractionResult.FAIL;
+            if (level.getBlockEntity(pos) instanceof com.fidtest.block.entity.PlatedDishBlockEntity plate) {
+                plate.setDish(context.getItemInHand());
+                if (!player.getAbilities().instabuild) context.getItemInHand().shrink(1);
+            }
+            level.gameEvent(player, net.minecraft.world.level.gameevent.GameEvent.BLOCK_PLACE, pos);
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
@@ -72,6 +126,7 @@ public class DishItem extends Item {
         if (!desc.isEmpty()) tips.add(Component.literal(desc).withStyle(ChatFormatting.GRAY));
         String chef = getChefName(stack);
         if (!chef.isEmpty()) tips.add(Component.translatable("tooltip.fidworkblock.dish_chef", chef));
+        tips.add(Component.translatable("tooltip.fidworkblock.dish_placeable").withStyle(ChatFormatting.GRAY));
         tips.add(Component.translatable("tooltip.fidworkblock.dish_hint").withStyle(ChatFormatting.DARK_GRAY));
     }
 
@@ -139,8 +194,15 @@ public class DishItem extends Item {
 
     public static void setStirCount(ItemStack dish, int sc) { getOrCreateWokData(dish).putInt("StirCount", sc); }
     public static int getStirCount(ItemStack dish) { CompoundTag w = getWokData(dish); return w != null && w.contains("StirCount") ? w.getInt("StirCount") : 0; }
-    public static void setSeasoningEffect(ItemStack dish, String s) { dish.getOrCreateTag().putString("seasoningeffect", s); }
-    public static String getSeasoningEffect(ItemStack dish) { CompoundTag t = dish.getTag(); return t != null && t.contains("seasoningeffect") ? t.getString("seasoningeffect") : ""; }
+    public static void setSeasoningEffect(ItemStack dish, String s) {
+        dish.getOrCreateTag().putString("seasoning", s);
+        dish.getOrCreateTag().remove("seasoningeffect");
+    }
+    public static String getSeasoningEffect(ItemStack dish) {
+        CompoundTag t = dish.getTag();
+        if (t == null) return "";
+        return t.contains("seasoning") ? t.getString("seasoning") : t.getString("seasoningeffect");
+    }
     public static int getHungerValue(ItemStack dish) { CompoundTag w = getWokData(dish); return w != null && w.contains("Hunger") ? w.getInt("Hunger") : 4; }
 
     public static List<String> getItemNames(ItemStack dish) {

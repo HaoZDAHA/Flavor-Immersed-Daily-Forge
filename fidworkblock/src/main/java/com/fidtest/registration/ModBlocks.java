@@ -20,6 +20,11 @@ public class ModBlocks {
                 .strength(0.5F, 3.0F).sound(sound).noOcclusion();
     }
 
+    public static final RegistryObject<TablewareBlock> TABLEWARE =
+            BLOCKS.register("tableware", () -> new TablewareBlock(props(MapColor.QUARTZ, SoundType.GLASS)));
+    public static final RegistryObject<PlatedDishBlock> PLATED_DISH =
+            BLOCKS.register("plated_dish", () -> new PlatedDishBlock(props(MapColor.QUARTZ, SoundType.GLASS)));
+
     public static final RegistryObject<SteamboxBlock> STEAMBOX =
             BLOCKS.register("steambox", () -> new SteamboxBlock(
                     BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(0.5F, 3.0F).sound(SoundType.WOOD).noOcclusion()));

@@ -1235,20 +1235,20 @@ public final class ModItems {
     public static final RegistryObject<Item> CRYSTALSUGAR = REGISTRY.register("crystalsugar", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> VINEGAR = REGISTRY.register("vinegar", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.ACETIC_EROSION.get(), () -> Config.aceticErosionEnabled));
+            new Item.Properties(), () -> ModEffects.ACETIC_EROSION.get(), () -> Config.aceticErosionEnabled, 0x71351F));
 
     public static final RegistryObject<Item> THICKBROADBEANSAUCE = REGISTRY.register("thickbroadbeansauce", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.BEAN_FURY.get(), () -> Config.beanFuryEnabled));
+            new Item.Properties(), () -> ModEffects.BEAN_FURY.get(), () -> Config.beanFuryEnabled, 0x963C27));
 
     public static final RegistryObject<Item> BONESOUPESSENCE = REGISTRY.register("bonesoupessence", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> BROWNSUGAR = REGISTRY.register("brownsugar", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> BUTTER = REGISTRY.register("butter", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.BUTTER_PITCHER.get(), () -> Config.butterPitcherEnabled));
+            new Item.Properties(), () -> ModEffects.BUTTER_PITCHER.get(), () -> Config.butterPitcherEnabled, 0xF6DE79));
 
     public static final RegistryObject<Item> SOY = REGISTRY.register("soy", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.SOLAR_BREW.get(), () -> Config.solarBrewEnabled));
+            new Item.Properties(), () -> ModEffects.SOLAR_BREW.get(), () -> Config.solarBrewEnabled, 0x392019));
 
     public static final RegistryObject<Item> CURRY = REGISTRY.register("curry", () -> new Item(new Item.Properties()));
 
@@ -1263,20 +1263,20 @@ public final class ModItems {
     public static final RegistryObject<Item> SWEETFLOURASUVE = REGISTRY.register("sweetflourasuve", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> SESAMEOIL = REGISTRY.register("sesameoil", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.SESAME_SLIP.get(), () -> Config.sesameSlipEnabled));
+            new Item.Properties(), () -> ModEffects.SESAME_SLIP.get(), () -> Config.sesameSlipEnabled, 0xC58A24));
 
     public static final RegistryObject<Item> SALT = REGISTRY.register("salt", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.FLAVOR_BASE.get(), () -> Config.flavorBaseEnabled));
+            new Item.Properties(), () -> ModEffects.FLAVOR_BASE.get(), () -> Config.flavorBaseEnabled, 0xF4F1E6));
 
     public static final RegistryObject<Item> SALTPIECE = REGISTRY.register("saltpiece", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> ORLEANSPOWDER = REGISTRY.register("orleanspowder", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> ANISEEDPOWDER = REGISTRY.register("aniseedpowder", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.ANISEED_WARD.get(), () -> Config.aniseedWardEnabled));
+            new Item.Properties(), () -> ModEffects.ANISEED_WARD.get(), () -> Config.aniseedWardEnabled, 0x856044));
 
     public static final RegistryObject<Item> ONIONPOWDER = REGISTRY.register("onionpowder", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.HULK_LEEK.get(), () -> Config.hulkLeekEnabled));
+            new Item.Properties(), () -> ModEffects.HULK_LEEK.get(), () -> Config.hulkLeekEnabled, 0x91AD57));
 
     public static final RegistryObject<Item> LILACPOWDER = REGISTRY.register("lilacpowder", () -> new Item(new Item.Properties()));
 
@@ -1293,7 +1293,7 @@ public final class ModItems {
     public static final RegistryObject<Item> PEPPEREDSALT = REGISTRY.register("pepperedsalt", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> CHILLIPOWDER = REGISTRY.register("chillipowder", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.FURY_ASSAULT.get(), () -> Config.furyAssaultEnabled));
+            new Item.Properties(), () -> ModEffects.FURY_ASSAULT.get(), () -> Config.furyAssaultEnabled, 0xC43924));
 
     public static final RegistryObject<Item> GREENTEAPOWDER = REGISTRY.register("greenteapowder", () -> new Item(new Item.Properties()));
 
@@ -1389,7 +1389,7 @@ public final class ModItems {
     public static final RegistryObject<Item> VEGETABLEANDEGGSTUFFING = REGISTRY.register("vegetableandeggstuffing", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> BROWNSUGARSYRUP = REGISTRY.register("brownsugarsyrup", () -> new SeasoningItem(
-            new Item.Properties(), () -> ModEffects.CRIMSON_MAMBA.get(), () -> true));
+            new Item.Properties(), () -> ModEffects.CRIMSON_MAMBA.get(), () -> true, 0x95572A));
 
     public static final RegistryObject<Item> SALTYWATER = REGISTRY.register("saltywater", () -> new Item(new Item.Properties()));
 

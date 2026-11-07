@@ -108,6 +108,12 @@ public class FlavorImmersedDailyClient {
     @SubscribeEvent
     static void onRegisterItemColors(RegisterColorHandlersEvent.Item event) {
         MooncakeFillingColors.register(event);
+        for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
+            if (item instanceof com.flavor_immersed_daily.item.SeasoningItem seasoning) {
+                event.register((stack, tintIndex) -> tintIndex == 100
+                        ? 0xFF000000 | seasoning.getColor() : 0xFFFFFFFF, seasoning);
+            }
+        }
     }
 
 // 模型重载完成后：让月饼馅料颜色缓存失效（纹理像素数据已变）

@@ -64,8 +64,14 @@ public class WokBlockEntity extends BlockEntity {
     public int getItemCount() { int c = 0; for (int i = 0; i < MAX_ITEMS; i++) if (!inventory.getStackInSlot(i).isEmpty()) c++; return c; }
     public boolean canAddItem() { return getItemCount() < MAX_ITEMS; }
 
-    public void addItem(ItemStack s) {
-        for (int i = 0; i < MAX_ITEMS; i++) if (inventory.getStackInSlot(i).isEmpty()) { inventory.setStackInSlot(i, s.copy()); sync(); return; }
+    public boolean addItem(ItemStack s) {
+        if (s.isEmpty() || s.getItem() instanceof DishItem) return false;
+        for (int i = 0; i < MAX_ITEMS; i++) if (inventory.getStackInSlot(i).isEmpty()) {
+            inventory.setStackInSlot(i, s.copyWithCount(1));
+            sync();
+            return true;
+        }
+        return false;
     }
 
     public void stirFry(@Nullable Player player) {
@@ -79,7 +85,20 @@ public class WokBlockEntity extends BlockEntity {
         if (level.isClientSide) return;
         int sc = stirCount; String se = seasoningName;
         List<ItemStack> items = new ArrayList<>();
-        for (int i = 0; i < MAX_ITEMS; i++) { ItemStack s = inventory.getStackInSlot(i); if (!s.isEmpty()) { items.add(s.copy()); inventory.setStackInSlot(i, ItemStack.EMPTY); } }
+        for (int i = 0; i < MAX_ITEMS; i++) {
+            ItemStack s = inventory.getStackInSlot(i);
+            if (s.isEmpty()) continue;
+            if (s.getItem() instanceof DishItem) {
+                net.minecraft.world.Containers.dropItemStack(level, pos.getX() + .5, pos.getY() + .3, pos.getZ() + .5, s.copy());
+            } else {
+                items.add(s.copy());
+            }
+            inventory.setStackInSlot(i, ItemStack.EMPTY);
+        }
+        if (items.isEmpty()) {
+            stirCount = 0; tossTicks = 0; seasoningName = ""; sync();
+            return;
+        }
         ItemStack result = findRecipeResult(level, items);
         if (result == null) { result = DishItem.createProceduralDish(items); DishItem.setFoodProperties(result, items, sc); DishItem.setStirCount(result, sc); if (!se.isEmpty()) DishItem.setSeasoningEffect(result, se); }
         ItemEntity e = new ItemEntity(level, pos.getX()+0.5, pos.getY()+0.3, pos.getZ()+0.5, result); e.setDefaultPickUpDelay(); level.addFreshEntity(e);
@@ -89,7 +108,7 @@ public class WokBlockEntity extends BlockEntity {
     private ItemStack findRecipeResult(Level level, List<ItemStack> inputs) {
         for (CookingRecipe r : ((ServerLevel) level).getRecipeManager().getAllRecipesFor(ModRecipeTypes.COOKING.get())) {
             String a = r.getAppliance(); if (!a.isEmpty() && !a.equals("wok")) continue;
-            if (r.matches(new CookingRecipeInput(inputs), level)) return r.getResult().copy();
+            if (r.matches(new CookingRecipeInput(inputs), level)) return r.getCookedResult(inputs);
         }
         return null;
     }

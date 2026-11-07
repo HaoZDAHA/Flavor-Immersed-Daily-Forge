@@ -124,7 +124,7 @@ public class WokBlock extends BaseEntityBlock {
 
         if (!held.isDamageableItem() && wok.canAddItem()) {
             ItemStack s = held.copy(); s.setCount(1);
-            wok.addItem(s);
+            if (!wok.addItem(s)) return InteractionResult.PASS;
             if (!player.isCreative()) held.shrink(1);
             level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.3F, 1.5F);
             return InteractionResult.SUCCESS;
